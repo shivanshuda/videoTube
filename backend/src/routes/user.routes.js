@@ -1,0 +1,54 @@
+import { Router } from "express";
+import {
+    loginUser,
+    registerUser,
+    logoutUser,
+    refreshAccessToken,
+    changeCurrentPassword,
+    getCurrentUser,
+    updateUserDetails,
+    updateUserAvatar,
+    updateUserCoverImage,
+    getUserChannelProfile,
+    getWatchHistory,
+    deleteUserCoverImage,
+} from "../controllers/user.controller.js";
+import { upload } from "../middlewares/multer.middleware.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
+
+const router = Router();
+
+/*
+ * registerUser routes
+ * http://localhost:8000/api/v1/users/register
+ * multer use as middleware for file upload in cloudinary
+ * then register user
+ */
+router.route("/register").post(
+    upload.fields([
+        { name: "avatar", maxCount: 1 },
+        { name: "coverImage", maxCount: 1 },
+    ]),
+    registerUser
+);
+router.route("/login").post(loginUser);
+router.route("/logout").post(verifyJWT, logoutUser);
+
+router.route("/refresh-token").post(refreshAccessToken);
+router.route("/change-password").post(verifyJWT, changeCurrentPassword);
+router.route("/get-current-user").post(verifyJWT, getCurrentUser);
+router.route("/update-user").patch(verifyJWT, updateUserDetails);
+
+router
+    .route("/update-avatar")
+    .patch(verifyJWT, upload.single("avatar"), updateUserAvatar);
+router
+    .route("/update-cover-image")
+    .patch(verifyJWT, upload.single("coverImage"), updateUserCoverImage);
+router.route("/delete-cover-image").delete(verifyJWT, deleteUserCoverImage);
+
+router.route("/c/:username").get(verifyJWT, getUserChannelProfile);
+// TODO: watch history pending
+router.route("/watch-history").get(verifyJWT, getWatchHistory);
+
+export default router;
